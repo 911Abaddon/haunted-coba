@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09070b">
+  <title>HAUNTED COBA | Leaderboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="auth-container leaderboard-container">
+    <p class="eyebrow">HAUNTED COBA · 31.10.26</p>
+    <h1>THE <span>RANKING</span></h1>
+    <p class="subtitle">Who will survive the hunt?</p>
+
+    <p id="leaderboard-status" class="message" role="status" aria-live="polite">
+      Φόρτωση κατάταξης...
+    </p>
+
+    <section id="leaderboard-list" class="leaderboard-list" aria-label="Κατάταξη παικτών"></section>
+
+    <button id="refresh-leaderboard" class="primary-button" type="button">
+      ΑΝΑΝΕΩΣΗ
+    </button>
+
+    <button id="back-to-game" class="tab back-button" type="button">
+      ΕΠΙΣΤΡΟΦΗ ΣΤΟ ΠΑΙΧΝΙΔΙ
+    </button>
+
+    <p class="footer-text">15 CLUES. ONE FINAL DESTINATION.</p>
+  </main>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/leaderboard.js"></script>
+</body>
+</html>

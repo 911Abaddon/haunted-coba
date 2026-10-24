@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09070b">
+  <meta name="description" content="HAUNTED COBA — Solve the clues if you dare.">
+  <title>HAUNTED COBA | The Hunt</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="auth-container clue-container">
+    <p class="eyebrow">HAUNTED COBA · 31.10.26</p>
+    <h1>THE <span>HUNT</span></h1>
+    <p class="subtitle" id="player-greeting">Loading your nightmare...</p>
+
+    
+<section id="progress-panel" class="progress-panel" hidden>
+  <div class="progress-heading">
+    <h2>MY PROGRESS</h2>
+    <strong id="progress-count">0/15</strong>
+  </div>
+
+  <div class="progress-track">
+    <div id="progress-bar" class="progress-fill"></div>
+  </div>
+
+  <p id="progress-summary" class="progress-summary">
+    Loading your progress...
+  </p>
+
+  <div id="progress-grid" class="progress-grid"></div>
+</section>
+
+<button id="toggle-progress" class="tab back-button" type="button" hidden>
+  👻 MY PROGRESS
+</button>
+
+
+    <section id="clue-content" hidden>
+      <p class="eyebrow" id="clue-number"></p>
+      <h2 id="clue-title"></h2>
+      <p id="clue-story" class="subtitle"></p>
+
+      <button id="show-hint-button" class="tab back-button" type="button" hidden>
+        👻 NEED A HINT?
+      </button>
+
+      <div id="clue-hint-box" hidden>
+        <p id="clue-hint"></p>
+      </div>
+
+      <form id="answer-form">
+        <label for="answer-input">Η απάντησή σου</label>
+        <input id="answer-input" name="answer" type="text"
+          placeholder="Γράψε την απάντηση..." maxlength="200"
+          autocomplete="off" autocapitalize="sentences" required>
+        <button id="answer-submit" class="primary-button" type="submit">
+          ΥΠΟΒΟΛΗ ΑΠΑΝΤΗΣΗΣ
+        </button>
+        <p id="answer-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="login-required" hidden>
+      <p class="subtitle">Πρέπει πρώτα να συνδεθείς για να συνεχίσεις το παιχνίδι.</p>
+      <button id="go-login" class="primary-button" type="button">ΠΙΣΩ ΣΤΗ ΣΥΝΔΕΣΗ</button>
+    </section>
+
+    <section id="clue-error" hidden>
+      <p id="clue-error-message" class="message"></p>
+      <button id="retry-button" class="primary-button" type="button">ΔΟΚΙΜΑΣΕ ΞΑΝΑ</button>
+    </section>
+
+    
+    <button id="open-leaderboard" class="tab back-button" type="button">
+    🏆 LEADERBOARD
+    </button>
+
+
+    <footer class="footer-text">
+      <p id="player-score">POINTS: —</p>
+      <button id="logout-button" class="tab" type="button">Αποσύνδεση</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/clue.js"></script>
+</body>
+</html>
