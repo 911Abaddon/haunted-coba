@@ -10,20 +10,15 @@ async function loadLeaderboard() {
   listElement.replaceChildren();
 
   try {
-    const url = `${SUPABASE_URL}/functions/v1/player-data?action=leaderboard`;
-
-    const response = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_KEY
-      }
-    });
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/player-data?action=leaderboard`,
+      { headers: { apikey: SUPABASE_KEY } }
+    );
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        result.error || "Δεν φορτώθηκε η κατάταξη."
-      );
+      throw new Error(result.error || "Δεν φορτώθηκε η κατάταξη.");
     }
 
     const players = result.leaderboard || [];
@@ -56,7 +51,6 @@ async function loadLeaderboard() {
     });
   } catch (error) {
     console.error("Leaderboard error:", error);
-
     statusElement.textContent =
       error.message || "Σφάλμα φόρτωσης. Δοκίμασε ξανά.";
   } finally {
@@ -69,27 +63,36 @@ async function returnToGame() {
   backButton.textContent = "ΦΟΡΤΩΣΗ ΠΑΙΧΝΙΔΙΟΥ...";
 
   try {
-    // Get the existing login session without using supabaseClient.
-    const client = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+    // Read the existing Supabase session directly from localStorage.
+    // This avoids creating another Supabase client.
+    let token = null;
 
-    const { data: sessionData, error: sessionError } =
-      await client.auth.getSession();
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index);
 
-    if (sessionError) {
-      throw sessionError;
+      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
+        try {
+          const saved = JSON.parse(localStorage.getItem(key));
+
+          token =
+            saved?.access_token ||
+            saved?.currentSession?.access_token ||
+            saved?.session?.access_token ||
+            null;
+
+          if (token) break;
+        } catch {
+          // Ignore unrelated or invalid stored values.
+        }
+      }
     }
-
-    const token = sessionData?.session?.access_token;
 
     if (!token) {
-      window.location.href = "index.html";
-      return;
+      throw new Error(
+        "Δεν βρέθηκε ενεργή σύνδεση. Κάνε ξανά login και δοκίμασε."
+      );
     }
 
-    // Retrieve this player's saved progress.
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/player-data?action=progress`,
       {
@@ -103,9 +106,7 @@ async function returnToGame() {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        result.error || "Δεν ήταν δυνατή η φόρτωση της προόδου."
-      );
+      throw new Error(result.error || "Δεν φορτώθηκε η πρόοδος.");
     }
 
     const completedIds = new Set(
@@ -114,27 +115,19 @@ async function returnToGame() {
         .map(item => Number(item.clue_id))
     );
 
-    // Find the first clue that has not been solved.
     let nextClueId = 1;
 
-    while (
-      nextClueId <= 15 &&
-      completedIds.has(nextClueId)
-    ) {
+    while (nextClueId <= 15 && completedIds.has(nextClueId)) {
       nextClueId++;
     }
 
-    // If all clues are solved, stay on the final clue.
-    if (nextClueId > 15) {
-      nextClueId = 15;
-    }
+    if (nextClueId > 15) nextClueId = 15;
 
     window.location.href = `clue.html?id=${nextClueId}`;
   } catch (error) {
     console.error("Return to game error:", error);
-
     statusElement.textContent =
-      error.message || "Σφάλμα φόρτωσης προόδου. Δοκίμασε ξανά.";
+      error.message || "Σφάλμα φόρτωσης προόδου.";
 
     backButton.disabled = false;
     backButton.textContent = "ΕΠΙΣΤΡΟΦΗ ΣΤΟ ΠΑΙΧΝΙΔΙ";
