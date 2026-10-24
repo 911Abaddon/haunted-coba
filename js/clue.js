@@ -50,6 +50,19 @@ function showLoginRequired() {
   errorSection.hidden = true;
   loginRequired.hidden = false;
   greeting.textContent = "Η αναζήτηση σε περιμένει.";
+
+  const currentUrl = new URL(window.location.href);
+  const qrToken = currentUrl.searchParams.get("token");
+
+  const loginButton = document.getElementById("go-login");
+
+  if (qrToken && loginButton) {
+    const redirect = `clue.html?token=${encodeURIComponent(qrToken)}`;
+
+    loginButton.onclick = () => {
+      window.location.href = `index.html?redirect=${encodeURIComponent(redirect)}`;
+    };
+  }
 }
 
 function showAnswerMessage(message, success = false) {

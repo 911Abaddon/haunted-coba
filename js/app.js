@@ -113,7 +113,19 @@ form.addEventListener("submit", async (event) => {
       throw sessionError;
     }
 
-    window.location.href = "clue.html";
+    const params = new URLSearchParams(window.location.search);
+const redirect = params.get("redirect");
+
+if (
+  redirect &&
+  redirect.startsWith("clue.html?token=") &&
+  !redirect.includes("://") &&
+  !redirect.includes("\\")
+) {
+  window.location.href = redirect;
+} else {
+  window.location.href = "clue.html";
+}
   } catch (error) {
     console.error("Authentication error:", error);
     showMessage(error.message || "Αποτυχία σύνδεσης. Δοκίμασε ξανά.");
