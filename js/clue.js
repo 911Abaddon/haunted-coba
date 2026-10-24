@@ -1,4 +1,3 @@
-
 const API_URL = `${SUPABASE_URL}/functions/v1/player-data`;
 
 // Main page elements
@@ -37,6 +36,7 @@ const NO_ANSWER_CLUE_IDS = [4, 7, 13, 15];
 
 let currentClue = null;
 let currentToken = null;
+let currentQrToken = null;
 
 function showError(message) {
   clueContent.hidden = true;
@@ -110,18 +110,21 @@ async function apiRequest(action, options = {}) {
 
 async function loadPlayerProgress() {
   const result = await apiRequest("progress");
+
   const progress = Array.isArray(result.progress)
     ? result.progress
     : [];
 
   // Only count clues that have actually been solved.
   const solvedProgress = progress.filter(item => Boolean(item.solved_at));
+
   const solvedIds = new Set(
     solvedProgress.map(item => Number(item.clue_id))
   );
 
   progressCount.textContent = `${solvedIds.size}/15`;
   progressBar.style.width = `${(solvedIds.size / 15) * 100}%`;
+
   progressSummary.textContent =
     `Έχεις λύσει ${solvedIds.size} από τους 15 γρίφους.`;
 
@@ -132,6 +135,7 @@ async function loadPlayerProgress() {
     const solved = solvedIds.has(id);
 
     item.className = `progress-item${solved ? " solved" : ""}`;
+
     item.textContent =
       `${solved ? "✓" : "🔒"} CLUE ${String(id).padStart(2, "0")}`;
 
@@ -143,6 +147,7 @@ async function loadPlayerProgress() {
       const pointLabel = document.createElement("span");
       pointLabel.className = "progress-points";
       pointLabel.textContent = `+${record?.points_awarded ?? 0} PTS`;
+
       item.appendChild(pointLabel);
     }
 
@@ -176,35 +181,37 @@ async function loadClue() {
     return;
   }
 
+  // Supabase authentication token
   currentToken = session.access_token;
 
   const meResult = await apiRequest("me");
 
   greeting.textContent = `Καλώς ήρθες, ${meResult.player.username}.`;
+
   scoreDisplay.textContent =
     `POINTS: ${meResult.player.total_points}`;
 
   await loadPlayerProgress();
 
+  // Read the unique QR token from the URL.
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get("slug");
-  const id = params.get("id");
 
-  let clueResult;
+  currentQrToken = params.get("token");
 
-  // Both slug and ID requests now use the authenticated API.
-  if (slug) {
-    clueResult = await apiRequest("clue", {
-      params: { slug }
-    });
-  } else if (id && /^[1-9]\d?$/.test(id)) {
-    clueResult = await apiRequest("clue", {
-      params: { id }
-    });
-  } else {
-    showError("Λείπει ο κωδικός του γρίφου. Σκάναρε ξανά το QR.");
+  // A QR token is required to identify the clue.
+  if (!currentQrToken) {
+    showError(
+      "Για να συνεχίσεις, σκάναρε το QR που βρίσκεται στο επόμενο σημείο."
+    );
     return;
   }
+
+  // Ask the backend to identify the clue using the QR token.
+  const clueResult = await apiRequest("clue", {
+    params: {
+      qrToken: currentQrToken
+    }
+  });
 
   const clue = clueResult.clue;
 
@@ -224,6 +231,7 @@ async function loadClue() {
   // Reset hint and answer UI for each newly loaded clue.
   hintText.textContent = clue.hint_text || "";
   hintBox.hidden = true;
+
   showHintButton.hidden = !clue.hint_text;
   showHintButton.textContent = "👻 NEED A HINT?";
 
@@ -234,6 +242,7 @@ async function loadClue() {
     `CLUE ${String(clue.id).padStart(2, "0")} · ${clue.points} POINTS`;
 
   clueTitle.textContent = clue.title;
+
   clueStory.textContent =
     clue.story_text ||
     "Η ιστορία αυτού του γρίφου θα αποκαλυφθεί σύντομα.";
@@ -246,7 +255,10 @@ async function loadClue() {
     try {
       const result = await apiRequest("auto-complete", {
         method: "POST",
-        body: { clueId: Number(clue.id) }
+        body: {
+          clueId: Number(clue.id),
+          qrToken: currentQrToken
+        }
       });
 
       if (typeof result.totalPoints === "number") {
@@ -269,6 +281,7 @@ async function loadClue() {
       }
 
       console.error("Automatic clue completion error:", error);
+
       showAnswerMessage(
         error.message ||
         "Δεν αποθηκεύτηκε η ολοκλήρωση. Δοκίμασε ξανά."
@@ -304,6 +317,7 @@ answerForm.addEventListener("submit", async event => {
 
   answerButton.disabled = true;
   answerButton.textContent = "ΕΛΕΓΧΟΣ...";
+
   showAnswerMessage("");
 
   try {
@@ -311,6 +325,7 @@ answerForm.addEventListener("submit", async event => {
       method: "POST",
       body: {
         clueId: Number(currentClue.id),
+        qrToken: currentQrToken,
         answer
       }
     });
